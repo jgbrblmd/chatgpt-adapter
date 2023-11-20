@@ -3,6 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/bincooo/chatgpt-adapter/cmd/util/pool"
 	"github.com/bincooo/chatgpt-adapter/internal/plat"
 	"github.com/bincooo/chatgpt-adapter/types"
@@ -11,11 +17,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
-	"time"
 
 	cmdtypes "github.com/bincooo/chatgpt-adapter/cmd/types"
 	cmdutil "github.com/bincooo/chatgpt-adapter/cmd/util"
@@ -23,8 +24,9 @@ import (
 )
 
 var (
-	port  int
-	count int
+	net_host string
+	port     int
+	count    int
 )
 
 const (
@@ -59,6 +61,7 @@ func Exec() {
 	}
 
 	rootCmd.Flags().StringVarP(&cmdvars.Proxy, "proxy", "P", "", "本地代理 proxy network")
+	rootCmd.Flags().StringVarP(&net_host, "net_interface", "n", "127.0.0.1", "监听地址 interface")
 	rootCmd.Flags().IntVarP(&port, "port", "p", 8080, "服务端口 service port")
 	rootCmd.Flags().BoolVarP(&cmdvars.Gen, "gen", "g", false, "生成sessionKey")
 	rootCmd.Flags().IntVarP(&count, "count", "c", 1, "生成sessionKey数量 generate count")
@@ -116,8 +119,9 @@ func Run(*cobra.Command, []string) {
 	route.Any("/v1/models", models)
 	route.POST("/v1/chat/completions", completions)
 
-	addr := ":" + strconv.Itoa(port)
-	logrus.Info("Start by http://127.0.0.1" + addr + "/v1")
+	addr := net_host + ":" + strconv.Itoa(port)
+	//logrus.Info("Start by http://127.0.0.1" + addr + "/v1")
+	logrus.Info("Start by http://" + addr + "/v1")
 	if err := route.Run(addr); err != nil {
 		logrus.Error(err)
 		os.Exit(1)
